@@ -75,8 +75,11 @@ describe('GET /todos route',() => {
 
 describe('GET /todos/:id', () => {
     it('should return todo doc', (done) => {
+
+        let hexId = todos[0]._id.toHexString();
+
         request(app)
-          .get(`/todos/${todos[0]._id.toHexString()}`)
+          .get(`/todos/${hexId}`)
           .expect(200)
           .expect((res) => {
               expect(res.body.todo.text).toBe(todos[0].text)
@@ -84,10 +87,10 @@ describe('GET /todos/:id', () => {
           .end(done)
     }),
 
-    it('should return 400 if request was invalid', (done) => {
+    it('should return 404 if request was invalid', (done) => {
         request(app)
           .get("/todos/sampleInvalidID")
-          .expect(400)
+          .expect(404)
           .expect((res) => {
               expect(res.body).toEqual({})
           })
@@ -99,5 +102,46 @@ describe('GET /todos/:id', () => {
           .get(`/todos/${new ObjectID().toHexString()}`)
           .expect(404)
           .end(done)
+    })
+})
+
+describe('DELETED /todos/:id', () => {
+    it('should remove a todo', (done) => {
+        let hexId = todos[0]._id.toHexString();
+
+        request(app)
+          .delete(`/todos/${hexId}`)
+          .expect(200)
+          .expect((res) => {
+              expect(res.body.todo._id).toBe(hexId)
+          })
+          .end((err, res) => {
+              if (err) {
+                  return done(err);
+              }
+
+              Todo.findById(hexId).then((todo) => {
+                  expect(todo).toNotExist;
+                  done();
+              }).catch((e) => done(e));
+              
+          });
+    }),
+
+    it('should return 404 if todo not found', (done) => {
+        request(app)
+        .delete("/todos/sampleInvalidID")
+        .expect(404)
+        .expect((res) => {
+            expect(res.body).toEqual({})
+        })
+        .end(done)
+    }),
+
+    it('should return 404 if objectID is invalid', (done) => {
+        request(app)
+        .delete(`/todos/${new ObjectID().toHexString()}`)
+        .expect(404)
+        .end(done)
     })
 })
