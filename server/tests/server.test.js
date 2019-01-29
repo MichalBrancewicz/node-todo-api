@@ -98,9 +98,6 @@ describe('GET /todos/:id', () => {
         request(app)
           .get(`/todos/${new ObjectID().toHexString()}`)
           .expect(404)
-          .expect((res) => {
-              expect(res.body).toEqual({})
-          })
           .end(done)
     })
 })
