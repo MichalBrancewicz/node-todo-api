@@ -10,7 +10,9 @@ const todos = [{
     text: "First test todo"
 }, {
     _id: new ObjectID(),
-    text: "Second test todo"
+    text: "Second test todo",
+    completed: true,
+    comptetedAt: 333
 }];
 
 beforeEach((done) => {
@@ -105,7 +107,7 @@ describe('GET /todos/:id', () => {
     })
 })
 
-describe('DELETED /todos/:id', () => {
+describe('DELETE /todos/:id', () => {
     it('should remove a todo', (done) => {
         let hexId = todos[0]._id.toHexString();
 
@@ -143,5 +145,46 @@ describe('DELETED /todos/:id', () => {
         .delete(`/todos/${new ObjectID().toHexString()}`)
         .expect(404)
         .end(done)
+    })
+})
+
+describe('PATCH /todos/:id', () => {
+    it('should update a todo', (done) => {
+        let hexId = todos[0]._id.toHexString();
+        let text = "New text for the first todo";
+
+        request(app)
+          .patch(`/todos/${hexId}`)
+          .send({
+              text,
+              completed: true,
+          })
+          .expect(200)
+          .expect((res) => {
+              expect(res.body.todo.text).toBe(text);
+              expect(res.body.todo.completed).toBe(true);
+              //toBeA doesn't work from v21 onwards
+          })
+          .end(done)
+    })
+
+    it('should clear completedAt when todo is not completed', (done) => {
+        let hexId = todos[1]._id.toHexString();
+        let text = "New text for the second todo";
+
+        request(app)
+          .patch(`/todos/${hexId}`)
+          .send({
+              text,
+              completed:false
+          })
+          .expect(200)
+          .expect((res) => {
+              expect(res.body.todo.text).toBe(text);
+              expect(res.body.todo.completed).toBe(false);
+              expect(res.body.todo.comptetedAt).toNotExist;
+
+          })
+          .end(done)
     })
 })
