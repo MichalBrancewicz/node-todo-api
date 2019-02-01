@@ -1,4 +1,4 @@
-require('./config/config.js')
+require('./config/config'); 
  
 const _ = require('lodash');
 const express = require('express');
@@ -93,6 +93,17 @@ app.patch('/todos/:id', (req, res) => {
 
 app.listen(port, () => {
     console.log(`Server started at port ${port}`)
+});
+
+app.post('/users/', (req, res) => {
+    let user = new User(_.pick(req.body, ['email', 'password']));
+
+    user.save().then((user) => {
+        res.send(user);
+    }, (error) => {
+        res.status(400).send(error)
+    });
+    
 });
 
 module.exports = {app};
